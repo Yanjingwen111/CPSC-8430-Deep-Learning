@@ -288,7 +288,7 @@ def main():
     with open('index2word.pickle', 'wb') as handle:
         pickle.dump(index2word, handle, protocol = pickle.HIGHEST_PROTOCOL)
     train_dataset = training_data(train_feat, train_label_path, word_dict, word2index)
-    train_dataloader = DataLoader(dataset = train_dataset, batch_size=64, num_workers=10, shuffle=True, collate_fn=minibatch) 
+    train_dataloader = DataLoader(dataset = train_dataset, batch_size=64, num_workers=6, shuffle=True, collate_fn=minibatch) 
 
     encoder = encoderRNN()
     decoder = decoderRNN(512, len(index2word) +4, len(index2word) +4, 1024)
@@ -299,7 +299,7 @@ def main():
     optimizer = optim.Adam(parameters, lr=1e-3)
     epoch_loss = []
     total_batch_losses = []
-    for epoch in range(30):
+    for epoch in range(20):
         loss, batch_losses = train(model, epoch+1, loss_fn, parameters, optimizer, train_dataloader) 
         epoch_loss.append(loss)
         total_batch_losses.extend(batch_losses)
