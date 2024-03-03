@@ -310,7 +310,7 @@ def main():
     with open('bacth_loss.txt', 'w') as f:
         for item in total_batch_losses:
             f.write("%s\n" % item)
-    torch.save(model, "trained_model.h5")
+    torch.save(model, "model.h5")
     print("Training Completed")
     # Plotting the batch losses
     plt.plot(total_batch_losses, label='Batch Loss')
