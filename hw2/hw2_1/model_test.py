@@ -55,13 +55,12 @@ with open('index2word.pickle', 'rb') as handle:
 
 test_result = test(testing_loader, model, index2word)
 
-output = sys.argv[2]
-
 with open("test_output.txt", 'w') as f:
     for id, caption in test_result:
         f.write('{},{}\n'.format(id, caption))
 
-# output = "test_output.txt"
+output = sys.argv[2]
+#output = "test_output.txt"
 result = {}
 with open(output,'r') as f:
     for line in f:
