@@ -38,26 +38,20 @@ class Generator(nn.Module):
     def __init__(self):
         super(Generator, self).__init__()
         self.model = nn.Sequential(
-            # Input is Z, going into a convolution
             nn.ConvTranspose2d(latent_dim, 512, 4, 1, 0, bias=False),
             nn.BatchNorm2d(512),
             nn.ReLU(True),
-            # State size. 512 x 4 x 4
             nn.ConvTranspose2d(512, 256, 4, 2, 1, bias=False),
             nn.BatchNorm2d(256),
             nn.ReLU(True),
-            # State size. 256 x 8 x 8
             nn.ConvTranspose2d(256, 128, 4, 2, 1, bias=False),
             nn.BatchNorm2d(128),
             nn.ReLU(True),
-            # State size. 128 x 16 x 16
             nn.ConvTranspose2d(128, 64, 4, 2, 1, bias=False),
             nn.BatchNorm2d(64),
             nn.ReLU(True),
-            # State size. 64 x 32 x 32
             nn.ConvTranspose2d(64, channels, 4, 2, 1, bias=False),
             nn.Tanh()
-            # Output size. channels x 64 x 64
         )
 
     def forward(self, input):
@@ -68,22 +62,17 @@ class Discriminator(nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()
         self.model = nn.Sequential(
-            # Input is channels x 64 x 64
             nn.Conv2d(channels, 64, 4, 2, 1, bias=False),
             nn.LeakyReLU(0.2, inplace=True),
-            # State size. 64 x 32 x 32
             nn.Conv2d(64, 128, 4, 2, 1, bias=False),
             nn.BatchNorm2d(128),
             nn.LeakyReLU(0.2, inplace=True),
-            # State size. 128 x 16 x 16
             nn.Conv2d(128, 256, 4, 2, 1, bias=False),
             nn.BatchNorm2d(256),
             nn.LeakyReLU(0.2, inplace=True),
-            # State size. 256 x 8 x 8
             nn.Conv2d(256, 512, 4, 2, 1, bias=False),
             nn.BatchNorm2d(512),
             nn.LeakyReLU(0.2, inplace=True),
-            # State size. 512 x 4 x 4
             nn.Conv2d(512, 1, 4, 1, 0, bias=False),
         )
 
@@ -115,14 +104,14 @@ discriminator.train()
 
 # Load the pre-trained Inception v3 model
 inception_model = inception_v3(pretrained=True, transform_input=False)
-inception_model.fc = torch.nn.Identity()  # Modify the model to return the 2048-dim features
+inception_model.fc = torch.nn.Identity()  
 inception_model = inception_model.to('cuda')
 inception_model.eval()
 
 # Function for preprocessing images for the Inception v3 model
 def inception_preprocess():
     return transforms.Compose([
-        transforms.Resize((299, 299)),  # Inception v3 expects images of size 299x299
+        transforms.Resize((299, 299)), 
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
 

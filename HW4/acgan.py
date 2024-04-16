@@ -58,7 +58,7 @@ class Generator(nn.Module):
 class Discriminator(nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()
-        self.label_emb = nn.Embedding(10, 64*64)  # 调整为匹配 64x64 图像的维度
+        self.label_emb = nn.Embedding(10, 64*64)  
 
         self.model = nn.Sequential(
             nn.Linear(3*64*64 + 64*64, 1024),
@@ -112,7 +112,7 @@ inception_model.eval().to(device)
 
 def inception_preprocess():
     return transforms.Compose([
-        transforms.Resize((299, 299)),  # Inception v3 expects images of size 299x299
+        transforms.Resize((299, 299)), 
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
 
@@ -134,39 +134,6 @@ def calculate_fid_score(features_real, features_fake):
     fid = ssdiff + np.trace(sigma1 + sigma2 - 2.0 * covmean)
     return fid
 
-# def calculate_fid(act1, act2):
-#     # act1, act2: numpy arrays containing activations of the real and generated images
-#     mu1, sigma1 = act1.mean(axis=0), np.cov(act1, rowvar=False)
-#     mu2, sigma2 = act2.mean(axis=0), np.cov(act2, rowvar=False)
-
-#     ssdiff = np.sum((mu1 - mu2) ** 2.0)
-#     covmean = sqrtm(sigma1.dot(sigma2), disp=False)[0]
-
-#     # Check for NaNs in covmean
-#     if np.isfinite(covmean).all():
-#         fid = ssdiff + np.trace(sigma1 + sigma2 - 2.0 * covmean)
-#     else:
-#         fid = 100000.0  # Arbitrarily large number
-#     return fid
-
-# def get_activations(images, model, batch_size=50, dims=2048):
-#     model.eval()
-#     n_batches = images.shape[0] // batch_size
-#     n_used_imgs = n_batches * batch_size
-
-#     pred_arr = np.empty((n_used_imgs, dims))
-#     for i in range(n_batches):
-#         start = i * batch_size
-#         end = start + batch_size
-#         batch = torch.tensor(images[start:end], dtype=torch.float32, device=device)
-#         with torch.no_grad():
-#             pred = model(batch)[0]
-
-#         # Resize features to the dimensionality we want
-#         pred_arr[start:end] = pred.cpu().data.numpy().reshape(batch_size, -1)
-#     return pred_arr
-
-
 num_epochs = 50
 fixed_noise = torch.randn(64, 100, 1, 1, device=device)
 g_losses = []
@@ -180,45 +147,31 @@ for epoch in range(num_epochs):
     for batch_idx, (imgs,labels) in enumerate(dataloader):
         batch_size = imgs.shape[0]
 
-        # 正确的标签
         valid = torch.ones(batch_size, 1, device=device)
         fake = torch.zeros(batch_size, 1, device=device)
 
-        # 真实图像和标签
         real_imgs = imgs.to(device)
         labels = labels.to(device)
 
-        # 配置输入噪声和随机标签
         z = torch.randn(batch_size, 100, device=device)
         gen_labels = torch.randint(0, 10, (batch_size,), dtype=torch.long, device=device)
 
-        # 生成图像
         generated_imgs = generator(z, gen_labels)
 
-        # ---------------------
-        #  训练 Discriminator
-        # ---------------------
         optimizerD.zero_grad()
 
-        # 真实图像的损失
         real_validity, real_aux = discriminator(real_imgs, labels)
         d_real_loss = (adversarial_loss(real_validity, valid) + auxiliary_loss(real_aux, labels)) / 2
 
-        # 生成图像的损失
         fake_validity, fake_aux = discriminator(generated_imgs.detach(), gen_labels)
         d_fake_loss = (adversarial_loss(fake_validity, fake) + auxiliary_loss(fake_aux, gen_labels)) / 2
 
-        # 总的 Discriminator 损失
         d_loss = (d_real_loss + d_fake_loss) / 2
         d_loss.backward()
         optimizerD.step()
 
-        # -----------------
-        #  训练 Generator
-        # -----------------
         optimizerG.zero_grad()
 
-        # Generator 的损失
         validity, aux = discriminator(generated_imgs, gen_labels)
         g_loss = (adversarial_loss(validity, valid) + auxiliary_loss(aux, gen_labels)) / 2
         g_loss.backward()
